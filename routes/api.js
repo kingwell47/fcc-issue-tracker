@@ -42,9 +42,9 @@ module.exports = function (app) {
               },
             },
           },
-          { upsert: true }
+          { new: true, upsert: true }
         );
-        if (projectData) await projectData.save();
+        await projectData.save();
         res.json("created new issue");
       } catch (err) {
         console.log(err.message);
@@ -70,7 +70,6 @@ module.exports = function (app) {
         );
         await projectData.save();
         res.json("closed issue");
-        // console.log("put");
       } catch (err) {
         console.log(err.message);
         res.json("server error");
@@ -79,6 +78,16 @@ module.exports = function (app) {
 
     .delete(async function (req, res) {
       let project = req.params.project;
-      //delete Issue
+      try {
+        const projectData = await Project.findOne({
+          project,
+        });
+        await projectData.issues.id(req.body._id).remove();
+        await projectData.save();
+        res.json("deleted issue");
+      } catch (err) {
+        console.log(err.message);
+        res.json("server error");
+      }
     });
 };
