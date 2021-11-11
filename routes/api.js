@@ -1,6 +1,7 @@
 "use strict";
 
 const Project = require("../models/Project");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 module.exports = function (app) {
   app
@@ -33,10 +34,11 @@ module.exports = function (app) {
                 issue_title,
                 issue_text,
                 created_by,
+                created_on: new Date().toJSON(),
+                updated_on: new Date().toJSON(),
                 assigned_to,
                 open: true,
                 status_text,
-                // Add created and updated on columns with correct time formats
               },
             },
           },
@@ -52,8 +54,27 @@ module.exports = function (app) {
 
     .put(async function (req, res) {
       let project = req.params.project;
-      //Update Issue to open: false, update time updated
-      console.log("put");
+
+      try {
+        const projectData = await Project.findOneAndUpdate(
+          {
+            project,
+            "issues._id": req.body._id,
+          },
+          {
+            $set: {
+              "issues.$.open": req.body.open,
+              "issues.$.updated_on": new Date().toJSON(),
+            },
+          }
+        );
+        await projectData.save();
+        res.json("closed issue");
+        // console.log("put");
+      } catch (err) {
+        console.log(err.message);
+        res.json("server error");
+      }
     })
 
     .delete(async function (req, res) {
