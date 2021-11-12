@@ -23,6 +23,8 @@ module.exports = function (app) {
       let project = req.params.project;
       let { issue_title, issue_text, created_by, assigned_to, status_text } =
         req.body;
+      if (!issue_title || !issue_text || !created_by)
+        return res.json("Required field missing");
       try {
         const projectData = await Project.findOneAndUpdate(
           {
@@ -34,8 +36,6 @@ module.exports = function (app) {
                 issue_title,
                 issue_text,
                 created_by,
-                created_on: new Date().toJSON(),
-                updated_on: new Date().toJSON(),
                 assigned_to,
                 open: true,
                 status_text,
@@ -54,22 +54,35 @@ module.exports = function (app) {
 
     .put(async function (req, res) {
       let project = req.params.project;
+      //Also needs to update information
+      let {
+        _id,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+        open,
+      } = req.body;
 
       try {
         const projectData = await Project.findOneAndUpdate(
           {
             project,
-            "issues._id": req.body._id,
+            "issues._id": _id,
           },
           {
-            $set: {
-              "issues.$.open": req.body.open,
-              "issues.$.updated_on": new Date().toJSON(),
-            },
-          }
+            "issues.$.issue_title": issue_title || undefined,
+            "issues.$.issue_text": issue_text || undefined,
+            "issues.$.created_by": created_by || undefined,
+            "issues.$.assigned_to": assigned_to || undefined,
+            "issues.$.status_text": status_text || undefined,
+            "issues.$.open": open || undefined,
+          },
+          { new: true }
         );
         await projectData.save();
-        res.json("closed issue");
+        res.json("updated issue");
       } catch (err) {
         console.log(err.message);
         res.json("server error");
