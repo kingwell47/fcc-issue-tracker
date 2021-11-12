@@ -92,6 +92,17 @@ suite("Functional Tests", function () {
 
   suite("GET tests", () => {
     // View issues on a project: GET request to /api/issues/{project}
+    test(" View issues on a project", (done) => {
+      chai
+        .request(server)
+        .get("/api/issues/apitest")
+        .end((err, res) => {
+          assert.equal(res.status, 200);
+          assert.equal(res.type, "application/json");
+          assert.isArray(res.body);
+          done();
+        });
+    });
     // View issues on a project with one filter: GET request to /api/issues/{project}
     // View issues on a project with multiple filters: GET request to /api/issues/{project}
   });

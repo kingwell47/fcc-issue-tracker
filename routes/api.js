@@ -9,10 +9,31 @@ module.exports = function (app) {
 
     .get(async function (req, res) {
       let project = req.params.project;
+      const queryFilter = { ...req.query };
       try {
-        const projectData = await Project.findOne({ project });
-        if (!projectData) return res.json([]);
-        return res.json(projectData.issues);
+        Project.findOne(
+          {
+            project,
+          },
+          async (err, data) => {
+            if (req.query.length === 0) return res.json(data.issues);
+            const issueData = data.issues.filter((item) => {
+              // if (item.open.toString() === req.query.open) return true;
+              for (let key in queryFilter) {
+                console.log(key, item[key], queryFilter[key]);
+                if (
+                  item[key] === undefined ||
+                  item[key].toString() !== queryFilter[key]
+                )
+                  return false;
+              }
+              return true;
+            });
+            return await res.json(issueData);
+          }
+        );
+        // if (!projectData) return res.json([]);
+        // return res.json(projectData.issues);
       } catch (err) {
         console.log(err.message);
         res.json("server error");
@@ -24,7 +45,7 @@ module.exports = function (app) {
       let { issue_title, issue_text, created_by, assigned_to, status_text } =
         req.body;
       if (!issue_title || !issue_text || !created_by)
-        return res.status(400).json("Required field missing");
+        return res.status(400).json({ error: "required field(s) missing" });
       try {
         let newId = new ObjectId();
         const projectData = await Project.findOneAndUpdate(
@@ -66,7 +87,7 @@ module.exports = function (app) {
         status_text,
         open,
       } = req.body;
-
+      if (!_id) return res.json({ error: "missing _id" });
       try {
         const projectData = await Project.findOneAndUpdate(
           {
