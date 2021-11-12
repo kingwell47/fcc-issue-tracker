@@ -24,8 +24,9 @@ module.exports = function (app) {
       let { issue_title, issue_text, created_by, assigned_to, status_text } =
         req.body;
       if (!issue_title || !issue_text || !created_by)
-        return res.json("Required field missing");
+        return res.status(400).json("Required field missing");
       try {
+        let newId = new ObjectId();
         const projectData = await Project.findOneAndUpdate(
           {
             project,
@@ -33,6 +34,7 @@ module.exports = function (app) {
           {
             $push: {
               issues: {
+                _id: newId,
                 issue_title,
                 issue_text,
                 created_by,
@@ -45,7 +47,8 @@ module.exports = function (app) {
           { new: true, upsert: true }
         );
         await projectData.save();
-        res.json("created new issue");
+        // console.log(projectData.issues);
+        return res.json(projectData.issues.id(newId));
       } catch (err) {
         console.log(err.message);
         res.json("server error");
@@ -54,8 +57,7 @@ module.exports = function (app) {
 
     .put(async function (req, res) {
       let project = req.params.project;
-      //Also needs to update information
-      let {
+      const {
         _id,
         issue_title,
         issue_text,
@@ -81,8 +83,9 @@ module.exports = function (app) {
           },
           { new: true }
         );
+        if (!projectData) return res.json("No records found");
         await projectData.save();
-        res.json("updated issue");
+        return res.json(projectData.issues.id(_id));
       } catch (err) {
         console.log(err.message);
         res.json("server error");
@@ -95,9 +98,12 @@ module.exports = function (app) {
         const projectData = await Project.findOne({
           project,
         });
+        let currentIssue = await projectData.issues.id(req.body._id);
+        if (!currentIssue)
+          return res.json({ error: "could not delete", _id: req.body._id });
         await projectData.issues.id(req.body._id).remove();
         await projectData.save();
-        res.json("deleted issue");
+        return res.json({ result: "successfully deleted", _id: req.body._id });
       } catch (err) {
         console.log(err.message);
         res.json("server error");
