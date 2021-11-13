@@ -111,7 +111,7 @@ module.exports = function (app) {
         open,
       } = req.body;
       if (!_id || !isValidObjectId(_id))
-        return res.status(400).json({ error: "missing _id" });
+        return res.json({ error: "missing _id" });
       if (
         !issue_title &&
         !issue_text &&
@@ -120,9 +120,7 @@ module.exports = function (app) {
         !status_text &&
         !open
       )
-        return res
-          .status(400)
-          .json({ error: "no update field(s) sent", _id: _id });
+        return res.json({ error: "no update field(s) sent", _id: _id });
       try {
         const projectData = await Project.findOneAndUpdate(
           {
@@ -140,7 +138,7 @@ module.exports = function (app) {
           { new: true }
         );
         if (!projectData)
-          return res.status(400).json({ error: "could not update", _id: _id });
+          return res.json({ error: "could not update", _id: _id });
         await projectData.save();
         return res.json({ result: "successfully updated", _id: _id });
       } catch (err) {
@@ -158,9 +156,7 @@ module.exports = function (app) {
         });
         let currentIssue = await projectData.issues.id(req.body._id);
         if (!currentIssue)
-          return res
-            .status(400)
-            .json({ error: "could not delete", _id: req.body._id });
+          return res.json({ error: "could not delete", _id: req.body._id });
         await projectData.issues.id(req.body._id).remove();
         await projectData.save();
         return res.json({ result: "successfully deleted", _id: req.body._id });

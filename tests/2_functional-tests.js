@@ -191,7 +191,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.notEqual(res.body._id, newId);
           assert.equal(res.body.error, "missing _id");
@@ -209,7 +208,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.equal(res.body._id, newId);
           assert.equal(res.body.error, "no update field(s) sent");
@@ -231,7 +229,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.equal(res.body.error, "missing _id");
           done();
@@ -266,7 +263,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.equal(res.body._id, "somefakerandomidthatdoesntexist");
           assert.equal(res.body.error, "could not delete");
@@ -283,7 +279,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.isUndefined(res.body._id);
           assert.equal(res.body.error, "missing _id");
