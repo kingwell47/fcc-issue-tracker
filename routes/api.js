@@ -20,7 +20,6 @@ module.exports = function (app) {
             const issueData = data.issues.filter((item) => {
               // if (item.open.toString() === req.query.open) return true;
               for (let key in queryFilter) {
-                console.log(key, item[key], queryFilter[key]);
                 if (
                   item[key] === undefined ||
                   item[key].toString() !== queryFilter[key]
@@ -46,23 +45,32 @@ module.exports = function (app) {
         req.body;
       if (!issue_title || !issue_text || !created_by)
         return res.status(400).json({ error: "required field(s) missing" });
+
       try {
         let newId = new ObjectId();
+        let newIssue = {
+          _id: newId,
+          open: true,
+          issue_title,
+          issue_text,
+          created_by,
+        };
+
+        assigned_to
+          ? (newIssue["assigned_to"] = assigned_to)
+          : (newIssue["assigned_to"] = "");
+
+        status_text
+          ? (newIssue["status_text"] = status_text)
+          : (newIssue["status_text"] = "");
+
         const projectData = await Project.findOneAndUpdate(
           {
             project,
           },
           {
             $push: {
-              issues: {
-                _id: newId,
-                issue_title,
-                issue_text,
-                created_by,
-                assigned_to,
-                open: true,
-                status_text,
-              },
+              issues: newIssue,
             },
           },
           { new: true, upsert: true }
@@ -87,8 +95,30 @@ module.exports = function (app) {
         status_text,
         open,
       } = req.body;
-      if (!_id) return res.json({ error: "missing _id" });
+      if (!_id) return res.status(400).json({ error: "missing _id" });
+      if (
+        !issue_title &&
+        !issue_text &&
+        !created_by &&
+        !assigned_to &&
+        !status_text &&
+        !open
+      )
+        return res
+          .status(400)
+          .json({ error: "no update field(s) sent", _id: _id });
+
+      //https://www.geeksforgeeks.org/how-to-check-if-a-string-is-valid-mongodb-objectid-in-node-js/
+      function isValidObjectId(id) {
+        if (ObjectId.isValid(id)) {
+          if (String(new ObjectId(id)) === id) return true;
+          return false;
+        }
+        return false;
+      }
       try {
+        if (!isValidObjectId(_id))
+          return res.status(400).json({ error: "could not update", _id: _id });
         const projectData = await Project.findOneAndUpdate(
           {
             project,
@@ -104,7 +134,8 @@ module.exports = function (app) {
           },
           { new: true }
         );
-        if (!projectData) return res.json("No records found");
+        if (!projectData)
+          return res.status(400).json({ error: "could not update", _id: _id });
         await projectData.save();
         return res.json(projectData.issues.id(_id));
       } catch (err) {
@@ -115,13 +146,16 @@ module.exports = function (app) {
 
     .delete(async function (req, res) {
       let project = req.params.project;
+      if (!req.body._id) return res.status(400).json({ error: "missing _id" });
       try {
         const projectData = await Project.findOne({
           project,
         });
         let currentIssue = await projectData.issues.id(req.body._id);
         if (!currentIssue)
-          return res.json({ error: "could not delete", _id: req.body._id });
+          return res
+            .status(400)
+            .json({ error: "could not delete", _id: req.body._id });
         await projectData.issues.id(req.body._id).remove();
         await projectData.save();
         return res.json({ result: "successfully deleted", _id: req.body._id });
