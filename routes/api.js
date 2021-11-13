@@ -4,6 +4,15 @@ const Project = require("../models/Project");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 module.exports = function (app) {
+  //https://www.geeksforgeeks.org/how-to-check-if-a-string-is-valid-mongodb-objectid-in-node-js/
+  function isValidObjectId(id) {
+    if (ObjectId.isValid(id)) {
+      if (String(new ObjectId(id)) === id) return true;
+      return false;
+    }
+    return false;
+  }
+
   app
     .route("/api/issues/:project")
 
@@ -41,13 +50,19 @@ module.exports = function (app) {
 
     .post(async function (req, res) {
       let project = req.params.project;
-      let { issue_title, issue_text, created_by, assigned_to, status_text } =
-        req.body;
+      let {
+        _id,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text,
+      } = req.body;
       if (!issue_title || !issue_text || !created_by)
         return res.status(400).json({ error: "required field(s) missing" });
-
+      let newId;
+      isValidObjectId(_id) ? (newId = _id) : (newId = new ObjectId());
       try {
-        let newId = new ObjectId();
         let newIssue = {
           _id: newId,
           open: true,
@@ -107,15 +122,6 @@ module.exports = function (app) {
         return res
           .status(400)
           .json({ error: "no update field(s) sent", _id: _id });
-
-      //https://www.geeksforgeeks.org/how-to-check-if-a-string-is-valid-mongodb-objectid-in-node-js/
-      function isValidObjectId(id) {
-        if (ObjectId.isValid(id)) {
-          if (String(new ObjectId(id)) === id) return true;
-          return false;
-        }
-        return false;
-      }
       try {
         if (!isValidObjectId(_id))
           return res.status(400).json({ error: "could not update", _id: _id });
