@@ -149,7 +149,7 @@ module.exports = function (app) {
 
     .delete(async function (req, res) {
       let project = req.params.project;
-      if (!req.body._id) return res.status(400).json({ error: "missing _id" });
+      if (!req.body._id) return res.json({ error: "missing _id" });
       try {
         const projectData = await Project.findOne({
           project,
