@@ -86,7 +86,6 @@ suite("Functional Tests", function () {
         })
         .type("application/x-www-form-urlencoded")
         .end((err, res) => {
-          assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
           assert.equal(res.body.error, "required field(s) missing");
           done();

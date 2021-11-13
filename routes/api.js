@@ -59,7 +59,7 @@ module.exports = function (app) {
         status_text,
       } = req.body;
       if (!issue_title || !issue_text || !created_by)
-        return res.status(400).json({ error: "required field(s) missing" });
+        return res.json({ error: "required field(s) missing" });
       let newId;
       isValidObjectId(_id) ? (newId = _id) : (newId = new ObjectId());
       try {
