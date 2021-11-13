@@ -152,7 +152,7 @@ suite("Functional Tests", function () {
           assert.equal(res.status, 200);
           assert.equal(res.type, "application/json");
           assert.equal(res.body._id, newId);
-          assert.equal(res.body.issue_title, `Updating title ${count}`);
+          assert.equal(res.body.result, "successfully updated");
           done();
         });
     });
@@ -174,10 +174,7 @@ suite("Functional Tests", function () {
           assert.equal(res.status, 200);
           assert.equal(res.type, "application/json");
           assert.equal(res.body._id, newId);
-          assert.equal(res.body.issue_text, `Updating text ${count}`);
-          assert.equal(res.body.created_by, `Updating created by ${count}`);
-          assert.equal(res.body.assigned_to, `Updating assigned_to ${count}`);
-          assert.equal(res.body.status_text, `Updating status_text ${count}`);
+          assert.equal(res.body.result, "successfully updated");
           done();
         });
     });
@@ -237,8 +234,7 @@ suite("Functional Tests", function () {
         .end((err, res) => {
           assert.equal(res.status, 400);
           assert.equal(res.type, "application/json");
-          assert.equal(res.body._id, "somefakerandomidthatdoesntexist");
-          assert.equal(res.body.error, "could not update");
+          assert.equal(res.body.error, "missing _id");
           done();
         });
     });

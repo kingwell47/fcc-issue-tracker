@@ -110,7 +110,8 @@ module.exports = function (app) {
         status_text,
         open,
       } = req.body;
-      if (!_id) return res.status(400).json({ error: "missing _id" });
+      if (!_id || !isValidObjectId(_id))
+        return res.status(400).json({ error: "missing _id" });
       if (
         !issue_title &&
         !issue_text &&
@@ -123,8 +124,6 @@ module.exports = function (app) {
           .status(400)
           .json({ error: "no update field(s) sent", _id: _id });
       try {
-        if (!isValidObjectId(_id))
-          return res.status(400).json({ error: "could not update", _id: _id });
         const projectData = await Project.findOneAndUpdate(
           {
             project,
@@ -143,7 +142,7 @@ module.exports = function (app) {
         if (!projectData)
           return res.status(400).json({ error: "could not update", _id: _id });
         await projectData.save();
-        return res.json(projectData.issues.id(_id));
+        return res.json({ result: "successfully updated", _id: _id });
       } catch (err) {
         console.log(err.message);
         res.json("server error");
